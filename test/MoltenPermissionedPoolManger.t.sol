@@ -69,15 +69,89 @@ contract CastPoolVoteTest is Test, IMoltenPermissionedPoolManagerErrors {
         vm.expectRevert(
             abi.encodeWithSelector(NotDelegate.selector, address(pool), caller)
         );
-        manager.castVoteOfPool(address(pool), proposalId, support);
+        manager.castVoteViaPool(address(pool), proposalId, support);
     }
 
-    function testCallsProxy(uint256 proposalId, uint8 support) public {
+    function testCallsPool(uint256 proposalId, uint8 support) public {
         vm.prank(delegate);
-        manager.castVoteOfPool(address(pool), proposalId, support);
+        manager.castVoteViaPool(address(pool), proposalId, support);
 
         (uint256 _proposalId, uint8 _support) = pool.__castVoteCalledWith();
         assertEq(_proposalId, proposalId);
         assertEq(_support, support);
+    }
+}
+
+contract PoolProposeTest is Test, IMoltenPermissionedPoolManagerErrors {
+    address owner = address(0x4242);
+    MoltenPoolMock pool;
+    address governor = address(0x4141);
+    address delegate = address(0x4444);
+    MoltenPermissionedPoolManager manager;
+
+    function setUp() public {
+        manager = new MoltenPermissionedPoolManager(owner);
+        pool = new MoltenPoolMock();
+        vm.prank(owner);
+        manager.setDelegate(address(pool), delegate);
+    }
+
+    function testForbidden(
+        address caller,
+        address[] memory targets,
+        uint256[] memory values,
+        string[] memory signatures,
+        bytes[] memory calldatas,
+        string memory description
+    ) public {
+        vm.assume(caller != delegate);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(NotDelegate.selector, address(pool), caller)
+        );
+        manager.proposeViaPool(
+            address(pool),
+            targets,
+            values,
+            signatures,
+            calldatas,
+            description
+        );
+    }
+
+    struct __ProposeCall {
+        address[] targets;
+        uint256[] values;
+        string[] signatures;
+        bytes[] calldatas;
+        string description;
+    }
+
+    function testCallsPool(
+        address[] memory targets,
+        uint256[] memory values,
+        string[] memory signatures,
+        bytes[] memory calldatas,
+        string memory description
+    ) public {
+        vm.prank(delegate);
+        manager.proposeViaPool(
+            address(pool),
+            targets,
+            values,
+            signatures,
+            calldatas,
+            description
+        );
+
+        assertEq(pool.__proposeCalledWith_targets().length, targets.length);
+        assertEq(pool.__proposeCalledWith_values().length, values.length);
+        assertEq(
+            pool.__proposeCalledWith_signatures().length,
+            signatures.length
+        );
+        assertEq(pool.__proposeCalledWith_calldatas().length, calldatas.length);
+        assertEq(pool.__proposeCalledWith_description(), description);
     }
 }

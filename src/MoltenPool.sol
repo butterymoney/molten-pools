@@ -15,4 +15,21 @@ contract MoltenPool is IMoltenPool, Owned {
     function castVote(uint256 proposalId, uint8 support) public onlyOwner {
         IGovernorBravo(governor).castVote(proposalId, support);
     }
+
+    function propose(
+        address[] memory targets,
+        uint256[] memory values,
+        string[] memory signatures,
+        bytes[] memory calldatas,
+        string memory description
+    ) public onlyOwner returns (uint256) {
+        return
+            IGovernorBravo(governor).propose(
+                targets,
+                values,
+                signatures,
+                calldatas,
+                description
+            );
+    }
 }

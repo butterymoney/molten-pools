@@ -23,7 +23,7 @@ contract MoltenPermissionedPoolManager is
         emit DelegateSet(pool, delegate);
     }
 
-    function castVoteOfPool(
+    function castVoteViaPool(
         address pool,
         uint256 proposalId,
         uint8 support
@@ -32,5 +32,26 @@ contract MoltenPermissionedPoolManager is
             revert NotDelegate(pool, msg.sender);
 
         MoltenPool(pool).castVote(proposalId, support);
+    }
+
+    function proposeViaPool(
+        address pool,
+        address[] memory targets,
+        uint256[] memory values,
+        string[] memory signatures,
+        bytes[] memory calldatas,
+        string memory description
+    ) public returns (uint256) {
+        if (msg.sender != poolDelegate[pool])
+            revert NotDelegate(pool, msg.sender);
+
+        return
+            MoltenPool(pool).propose(
+                targets,
+                values,
+                signatures,
+                calldatas,
+                description
+            );
     }
 }
