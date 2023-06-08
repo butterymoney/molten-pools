@@ -56,13 +56,13 @@ contract UniswapIntegrationTest is Test {
         assert(success);
     }
 
-    function testCastVote() public {
+    function testProposeAndVote() public {
         // Delegate Timelock votes to a pool manageable by Alice
+        vm.prank(butter);
+        manager.setDelegate(address(pool), alice);
         vm.prank(address(TIMELOCK));
         UNI.delegate(address(pool));
         assert(UNI.balanceOf(address(TIMELOCK)) > GOVERNOR_BRAVO.quorumVotes());
-        vm.prank(butter);
-        manager.setDelegate(address(pool), alice);
 
         // encode a call to send 1 wei of UNI to alice
         address[] memory targets = new address[](1);

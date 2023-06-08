@@ -1,16 +1,36 @@
 name: test
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
 
 env:
   FOUNDRY_PROFILE: ci
+  NODE_VERSION: 18.16.0
 
 jobs:
-  check:
+  lint-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+      - name: Install
+        run: npm ci --include=dev
+      - name: Solhint check
+        run: npx solhint '{src,test}/**/*.sol'
+      - name: Prettier check
+        run: npx prettier --check .
+
+  forge-check:
     strategy:
       fail-fast: true
-
-    name: Foundry project
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -30,5 +50,12 @@ jobs:
 
       - name: Run Forge tests
         run: |
-          forge test -vvv
+          forge test -vvv --no-match-path test/Integration.t.sol
         id: test
+
+      - name: Run Forge integration tests
+        env:
+          FORK_URL: ${{ secrets.FORK_URL }}
+        run: |
+          forge test -vvv --match-path test/Integration.t.sol --fork-url $FORK_URL --fork-block-number 17436637
+        id: integration-test
