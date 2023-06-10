@@ -1,10 +1,21 @@
 # Molten Pools
 
-_A System for Managed, Delegated Voting on Governor Bravo_
+_A delegation extension pack for Governor Bravo_
 
 Molten Pools serve as recipients of delegated votes from governance token
 holders, which can then be channeled through the Molten Pool Manager contract to
-influence the governance process.
+exert governance rights.
+
+## Rationale
+
+Molten Pools is a technical implementation of Butter's [Delegation Partner Pool
+Program](https://butterd.notion.site/Butter-Delegation-Partner-Pools-ac1f44173eb54ebb8a9e12b74af20805)
+designed to address imbalance in DAO governance. Molten Pools allow large DAO
+tokenholders to pool their voting power and let tokenholders control
+distribution of this voting power via Butter's elections.
+
+This process aims at being credibly neutral thus promoting transparency and
+integrity in decision-making.
 
 ## How it works
 
@@ -31,13 +42,29 @@ enforcing a permissioned setup.
 4. Once the Delegation Campaign period ends, Butter resets the Pool's Delegate,
    effectively revoking their enhanced voting and proposal rights.
 
-## Caveat
+## Caveats
 
-This system is inherently permissioned, meaning the owner of the Pool Manager
-has the capacity to revoke delegatee access at any point.
+### Permissions
 
-A permissionless setup would require rules, eg. define a Pool's Delegate for
-fixed period of 3 months.
+Control over the delegated voting rights is permissioned to the owner of the
+Manager contract. In particular, the owner has the capacity to revoke delegatee
+access at any point.
 
-For such functionality, see [Alligator by
-Agora](https://github.com/voteagora/liquid-delegator).
+To improve on this, 2 options are avaialble:
+
+- [Implement Pools with specific
+  logic](https://github.com/butterymoney/molten-pools/issues/1)
+- Use a rules-based contract like
+  [Alligator](https://github.com/voteagora/liquid-delegator).
+
+
+
+### Splitting delegations
+
+As long as Governor contracts don't implement some form of [fractional
+voting](github.com/ScopeLift/flexible-voting), there is no way to implement
+delegation Pools which split their delegation to multiple recipient Delegates.
+
+Other smart contracts designed to hold actual tokens, like
+[Franchiser](github.com/NoahZinsmeister/franchiser), can achieve this at the
+cost of higher trust.
